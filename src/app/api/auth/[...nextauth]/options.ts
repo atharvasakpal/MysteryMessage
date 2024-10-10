@@ -11,7 +11,7 @@ export const authOptions: NextAuthOptions = {
             id: 'credentials',
             name: 'Credentials',
             credentials: {
-                email: { label: "email", type: "text" },
+                identifier: { label: "Username or Email", type: "text" },
                 password: { label: "Password", type: "password" }
             },
             async authorize(credentials:any):Promise<any>{
@@ -26,7 +26,7 @@ export const authOptions: NextAuthOptions = {
 
                     if(!user)
                     {
-                        throw new Error('No user found with this email!')
+                        throw new Error('No user found with this email/username !')
                     }
 
                     if(!user.isVerified)

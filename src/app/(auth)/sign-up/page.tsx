@@ -100,7 +100,7 @@ const page = () => {
 
 
   return (
-    <>
+    
     <div className='flex justify-center items-center min-h-screen bg-gray-100'>
         
       <div className='w-full max-w-md p-8  space-y-8 bg-white rounded-lg shadow-md'>
@@ -110,7 +110,10 @@ const page = () => {
             <p className='mb-4'>Sign up to start your anonymous adventure</p>
         </div>
         <Form {...form}>
+        
             <form action="" onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
+
+
                 <FormField
                     control={form.control}
                     name="username"
@@ -125,14 +128,18 @@ const page = () => {
                             }}
                         />
 
-                            {isCheckingUsername && <Loader2 className=' animate-spin'/>}
+                            
 
                         </FormControl>
+                        {isCheckingUsername && <Loader2 className=' animate-spin'/>}
+                        <p className={`text-sm ${usernameMessage === 'Username is unique'? 'text-green-500' : 'text-red-500'}`}>test {usernameMessage}</p>
                          
                         <FormMessage />
                     </FormItem>
                     )}
                 />
+
+
 
                 <FormField
                     control={form.control}
@@ -148,6 +155,8 @@ const page = () => {
                     )}
                 />
 
+
+
                 <FormField
                     control={form.control}
                     name="password"
@@ -161,9 +170,11 @@ const page = () => {
                     </FormItem>
                     )}
                 />
+
+
                 <Button type='submit' disabled={isSubmitting}>
                     {
-                        isSubmitting ? (
+                        (isSubmitting) ? (
                             <>
                             <Loader2 className='mr-2 h-4 w-4 animate-spin'/> Please Wait
                             </>
@@ -171,6 +182,7 @@ const page = () => {
                     }
                 </Button>
             </form>
+            
         </Form>
         <div className='text-center mt-4'>
             <p>
@@ -180,7 +192,6 @@ const page = () => {
         </div>
       </div>
     </div>
-    </>
   )
 }
 
