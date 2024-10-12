@@ -1,6 +1,143 @@
-import React from 'react'
+'use client'
+
+import { useToast } from '@/hooks/use-toast'
+import { Message } from '@/model/User'
+import { acceptMessageSchema } from '@/schemas/acceptMessageSchema'
+import { zodResolver } from '@hookform/resolvers/zod'
+import axios, { AxiosError } from 'axios'
+import { useSession } from 'next-auth/react'
+import React, { useCallback, useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { apiResponse } from '../../../../types/apiResponse'
+import { User } from 'next-auth'
 
 const page = () => {
+  const [messages, setMessages] = useState<Message[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSwitchLoading, setIsSwitchLoading] = useState(false)
+
+
+  const {toast} = useToast();
+
+  const handleDeleteMessage = (messageID: string)=>{
+      setMessages(messages.filter((message) => {message._id !== messageID}))
+  }
+
+  const {data : session } = useSession();
+
+  const form = useForm({
+    resolver: zodResolver(acceptMessageSchema)
+  })
+
+  const {register, watch, setValue} = form
+  const acceptMessages = watch('acceptMessages')
+
+  const fetchAcceptMessage = useCallback(async()=>{
+    setIsSwitchLoading(true)
+
+    try{
+      const response = await axios.get<apiResponse>(`/api/accept-messages`)
+      setValue('acceptMessages', response.data.isAcceptingMessage)
+    }
+    catch(error)
+    {
+      const  axiosError = error as AxiosError<apiResponse>
+      toast({
+        title: 'Error',
+        description: axiosError.response?.data.message || 'Failed to fetch message settings',
+        variant: 'destructive'
+
+      })
+    }
+    finally{
+      setIsSwitchLoading(false)
+    }
+
+  },[setValue])
+
+  const fetchMessages = useCallback(async(refresh: boolean=false)=>{
+    setIsLoading(true);
+    setIsSwitchLoading(false)
+
+    try{
+      const response =  await axios.get<apiResponse>(`/api/get-messages`)
+      setMessages(response.data.messages || [])
+      if(refresh)
+      {
+        toast({
+        title: 'Refreshed Messages',
+        description: 'Showing latest messages',
+        
+        })
+      }
+    }
+    catch(error)
+    {
+      const  axiosError = error as AxiosError<apiResponse>
+      toast({
+        title: 'Error',
+        description: axiosError.response?.data.message || 'Failed to get messages',
+        variant: 'destructive'
+        })
+    }
+    finally{
+      setIsSwitchLoading(false)
+      setIsLoading(false)
+    }
+  },[setIsLoading, setMessages]);
+
+
+  useEffect(()=>{
+    if(!session|| !session.user) return 
+    fetchMessages()
+    fetchAcceptMessage()
+  }, [session, setValue, fetchAcceptMessage, fetchMessages])
+
+  //handle switch change
+  const handleSwitchChange = async ()=>{
+    try{
+      const response = await axios.post<apiResponse>(`/api/accept-messages`,{
+        acceptMessages : !acceptMessages
+      })
+      setValue('acceptMessages', !acceptMessages)
+      toast({
+        title: response.data.message,
+        variant :'default'
+    })
+    }
+    catch(error)
+    {
+      const  axiosError = error as AxiosError<apiResponse>
+      toast({
+        title: 'Error',
+        description: axiosError.response?.data.message || 'Failed to get messages',
+        variant: 'destructive'
+        })
+    }
+  }
+
+
+  const {username} = session?.user as User
+
+  //TODO : do more research
+  const baseURL = `${window.location.protocol}//${window.location.host}`
+  const profileURL = `${baseURL}/u/${username}`
+
+  const copyToClipboard = ()=>{
+      navigator.clipboard.writeText(profileURL)
+      toast({
+        title: 'URL copied ',
+        description: 'Profile URL has been copied to clipboard'
+      })
+  }
+
+  if(!session || !session.user)
+  {
+    return <div>
+    Please Login
+    </div>
+  }
+
   return (
     <div>
       dashboard
